@@ -32,6 +32,8 @@ class SlackResponse {
     
     /**
      * Declares the current request to be invalid by issuing the 400 HTTP Status Code.
+     *
+     * @param String $message
      */
     public function invalidRequest($message = null) {
         header('HTTP/1.0 400 Bad Request');
@@ -42,8 +44,10 @@ class SlackResponse {
     
     /**
      * Declares the current request to be unauthorized by issuing the 403 HTTP Status Code.
+     *
+     * @param String $message
      */
-    public function unauthorizedRequest() {
+    public function unauthorizedRequest($message = null) {
         header('HTTP/1.0 403 Forbidden');
         $this->respond(
             ($message !== null) ? $message : '403 Forbidden'
