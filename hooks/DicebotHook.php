@@ -5,28 +5,20 @@ require_once 'Hook.php';
 require_once 'exception/ConfigException.php';
 
 class DicebotHook extends Hook {
-    const CONFIG_FILE = 'config.ini';
     
     /**
-     * List of supported tokens.
-     * @type Array
+     * The name of this hook.
+	 * @type String
      */
-    protected $tokens = array();
+    protected $name = 'Dicebot';
     
     /**
-     * List of supported triggers. (to be populated by subclasses)
+     * List of supported triggers.
      * @type Array
      */
     protected $triggers = array(
         '.roll'
     );
-    
-    /**
-     * Initialize the bot
-     */
-    public function __construct() {
-        $this->loadConfig();
-    }
     
     /**
      * Processes the input text and returns the response for Slack.
@@ -78,21 +70,5 @@ class DicebotHook extends Hook {
         }
         
         return $response . (($numRolls > 1) ? (' = ' . $total) : '');
-    }
-    
-    /**
-     * Dynamically load in the supported tokens for this bot.
-     */
-    private function loadConfig() {
-        if (!is_readable(self::CONFIG_FILE)) {
-            throw new \Slackbot\Exception\ConfigException('Missing config file ' . self::CONFIG_FILE);
-        }
-        
-        $config = parse_ini_file(self::CONFIG_FILE, true);
-        if (empty($config['dicebot']) || empty($config['dicebot']['token'])) {
-            throw new \Slackbot\Exception\ConfigException('Missing dicebot tokens');
-        }
-        
-        $this->tokens = is_array($config['dicebot']['token']) ? $config['dicebot']['token'] : array($config['dicebot']['token']);
     }
 }

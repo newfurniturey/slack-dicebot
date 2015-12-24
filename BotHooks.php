@@ -1,8 +1,10 @@
 <?php
 
 namespace Slackbot;
+require_once 'exception/ConfigException.php';
 
 class BotHooks {
+    const CONFIG_FILE = 'config.ini';
     const HOOK_DIR = 'hooks';
     
     /**
@@ -52,9 +54,9 @@ class BotHooks {
     public function getHooksByToken($token) {
         $hooks = array();
         foreach ($this->hooks as $hook) {
-            if ($hook->isValidToken($token)) {
-                $hooks[] = $hook;
-            }
+			if ($hook->isValidToken($token)) {
+				$hooks[] = $hook;
+			}
         }
         
         return $hooks;
@@ -93,12 +95,35 @@ class BotHooks {
             }
             
             // store the hook
-            $this->hooks[] = $hookInstance;
-            
+            $this->hooks[$hookInstance->getName()] = $hookInstance;
             // process the triggers supported by the hook
             $this->loadHookTriggers($hookInstance);
         }
+            
+		// process the tokens supported for the hooks
+		$this->loadHookConfig();
     }
+	
+	/**
+	 * Load and store the supported tokens for each bot.
+	 */
+	private function loadHookConfig() {
+        if (!is_readable(self::CONFIG_FILE)) {
+            throw new \Slackbot\Exception\ConfigException('Missing config file ' . self::CONFIG_FILE);
+        }
+        
+        $config = parse_ini_file(self::CONFIG_FILE, true);
+		foreach ($config as $sectionName => $settings) {
+			if (isset($settings['token'])) {
+				foreach ($this->hooks as $hookName => $hook) {
+					if ($hookName === $sectionName) {
+						$hook->addTokens((array)$settings['token']);
+						break;
+					}
+				}
+			}
+		}
+	}
     
     /**
      * Generate a trigger-to-hook map for the given hook and each of it's supported triggers.
